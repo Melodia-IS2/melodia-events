@@ -17,13 +17,14 @@ type CreateEventImpl struct {
 }
 
 func (u *CreateEventImpl) Execute(ctx context.Context, event *entities.Event) (err error) {
+	event.IsPublished = true
+
+	if err := u.EventPublisher.Publish(ctx, event); err != nil {
+		event.IsPublished = false
+	}
 
 	err = u.EventRepository.Register(ctx, event)
 	if err != nil {
-		return err
-	}
-
-	if err := u.EventPublisher.Publish(ctx, event); err != nil {
 		return err
 	}
 

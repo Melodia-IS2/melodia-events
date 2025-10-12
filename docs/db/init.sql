@@ -10,5 +10,6 @@ CREATE TABLE IF NOT EXISTS events (
     service TEXT NOT NULL,
     error_level INTEGER NOT NULL,
     token TEXT NOT NULL,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    is_published BOOLEAN NOT NULL DEFAULT FALSE
 );

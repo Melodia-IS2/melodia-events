@@ -25,4 +25,5 @@ type Event struct {
 	ErrorLevel  ErrorLevel
 	Token       string
 	CreatedAt   time.Time
+	IsPublished bool
 }
