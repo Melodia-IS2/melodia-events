@@ -15,8 +15,6 @@ func main() {
 
 	deps := dependencies.NewHandlerContainer(cfg)
 
-	defer deps.Deferred.Close()
-
 	// Debugging purposes
 	http.SetExposeErrorDetail(true)
 	// End of debugging purposes
@@ -33,6 +31,7 @@ func main() {
 
 	app := builder.
 		RegisterHandler(deps.CreateEvent).
+		RegisterHandler(deps.GetEvents).
 		RegisterHandler(deps.Swagger).
 		Build()
 

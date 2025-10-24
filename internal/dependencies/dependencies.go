@@ -1,71 +1,58 @@
 package dependencies
 
 import (
-	"database/sql"
+	"fmt"
 	"melodia-events/internal/config"
 	"melodia-events/internal/infrastructure/persistence"
 	"melodia-events/internal/infrastructure/publishers"
 	"melodia-events/internal/swagger"
 	"melodia-events/internal/usecase/createevent"
+	"melodia-events/internal/usecase/getevents"
 
 	"github.com/Melodia-IS2/melodia-go-utils/pkg/router"
 	"github.com/segmentio/kafka-go"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 
 	_ "github.com/lib/pq"
 )
 
-type deferred struct {
-	db          *sql.DB
-	kafkaWriter *kafka.Writer
-}
-
-func (d *deferred) Close() {
-	d.db.Close()
-	d.kafkaWriter.Close()
-}
-
+// TODO ADD DEFERS
 type HandlerContainer struct {
 	CreateEvent router.CanRegister
+	GetEvents   router.CanRegister
 	Swagger     router.CanRegister
-	Deferred    *deferred
 }
 
 func NewHandlerContainer(cfg *config.Config) *HandlerContainer {
-	var db *sql.DB
+	var client *mongo.Client
 	var kafkaWriter *kafka.Writer
 
-	defer func() {
-		r := recover()
-		if r != nil {
-			if db != nil {
-				db.Close()
-			}
-			if kafkaWriter != nil {
-				kafkaWriter.Close()
-			}
-		}
-		panic(r)
-	}()
+	clientOpts := options.Client().ApplyURI(fmt.Sprintf("mongodb://%s:%s@%s:%s/%s?authSource=admin",
+		cfg.MongoConfig.User,
+		cfg.MongoConfig.Password,
+		cfg.MongoConfig.Host,
+		cfg.MongoConfig.Port,
+		cfg.MongoConfig.Database,
+	))
 
-	db, err := sql.Open("postgres", cfg.DatabaseURL)
+	client, err := mongo.Connect(clientOpts)
 
 	if err != nil {
 		panic(err)
 	}
 
+	eventsDatabase := client.Database(cfg.MongoConfig.Database)
+	eventsCollection := eventsDatabase.Collection("events")
+
 	kafkaWriter = kafka.NewWriter(kafka.WriterConfig{
 		Brokers: []string{cfg.KafkaURL},
 	})
 
-	deferred := &deferred{
-		db:          db,
-		kafkaWriter: kafkaWriter,
-	}
-
 	/* Repositories */
 
-	eventRepo := &persistence.PostgresEventRepository{
-		DB: db,
+	eventRepo := &persistence.MongoEventRepository{
+		Collection: eventsCollection,
 	}
 
 	eventPublisher := &publishers.KafkaEventPublisher{
@@ -80,6 +67,10 @@ func NewHandlerContainer(cfg *config.Config) *HandlerContainer {
 		EventPublisher:  eventPublisher,
 	}
 
+	getEventsUC := &getevents.GetEventsImpl{
+		EventRepository: eventRepo,
+	}
+
 	/* End of Usecases */
 
 	/* Handlers */
@@ -88,13 +79,17 @@ func NewHandlerContainer(cfg *config.Config) *HandlerContainer {
 		CreateEventUC: createEventUC,
 	}
 
+	getEventsHandler := &getevents.GetEventsHandler{
+		GetEventsUC: getEventsUC,
+	}
+
 	swaggerHandler := &swagger.SwaggerHandler{}
 
 	/* End of Handlers */
 
 	return &HandlerContainer{
 		CreateEvent: createEventHandl,
+		GetEvents:   getEventsHandler,
 		Swagger:     swaggerHandler,
-		Deferred:    deferred,
 	}
 }

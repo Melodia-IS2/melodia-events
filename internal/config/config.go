@@ -6,11 +6,17 @@ import (
 )
 
 type Config struct {
-	Port string
+	Port        string
+	MongoConfig MongoConfig
+	KafkaURL    string
+}
 
-	DatabaseURL string
-
-	KafkaURL string
+type MongoConfig struct {
+	Port     string
+	User     string
+	Host     string
+	Password string
+	Database string
 }
 
 func Load() *Config {
@@ -18,7 +24,13 @@ func Load() *Config {
 	return &Config{
 		Port: env.GetEnv("PORT", "8082"),
 
-		DatabaseURL: env.GetEnv("DATABASE_URL", ""),
+		MongoConfig: MongoConfig{
+			Port:     env.GetEnv("MONGO_PORT", ""),
+			User:     env.GetEnv("MONGO_USER", ""),
+			Host:     env.GetEnv("MONGO_HOST", ""),
+			Password: env.GetEnv("MONGO_PASSWORD", ""),
+			Database: env.GetEnv("MONGO_DATABASE", ""),
+		},
 
 		KafkaURL: env.GetEnv("KAFKA_URL", ""),
 	}

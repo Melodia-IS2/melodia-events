@@ -7,4 +7,5 @@ import (
 
 type EventRepository interface {
 	Register(ctx context.Context, event *entities.Event) error
+	FindAll(ctx context.Context) ([]*entities.Event, error)
 }

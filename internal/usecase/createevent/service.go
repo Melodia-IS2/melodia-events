@@ -5,6 +5,8 @@ import (
 
 	"melodia-events/internal/domain/entities"
 	"melodia-events/internal/domain/repositories"
+
+	"github.com/google/uuid"
 )
 
 type CreateEvent interface {
@@ -18,6 +20,7 @@ type CreateEventImpl struct {
 
 func (u *CreateEventImpl) Execute(ctx context.Context, event *entities.Event) (err error) {
 	event.IsPublished = true
+	event.ID = uuid.New()
 
 	if err := u.EventPublisher.Publish(ctx, event); err != nil {
 		event.IsPublished = false
