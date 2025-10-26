@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"melodia-events/internal/domain/entities"
 	"net/http"
 )
 
@@ -14,7 +15,7 @@ func SetEventHandlerDomain(domain string) {
 	eventHandlerDomain = domain
 }
 
-func Publish(ctx context.Context, event *Event) {
+func Publish(ctx context.Context, event *entities.Event) {
 	go func() {
 
 		url := fmt.Sprintf("%s/event", eventHandlerDomain)

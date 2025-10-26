@@ -1,6 +1,7 @@
 package createevent
 
 import (
+	"melodia-events/internal/domain/entities"
 	"net/http"
 
 	"github.com/Melodia-IS2/melodia-go-utils/pkg/errors"
@@ -17,17 +18,12 @@ func (handler *CreateEventHandler) Register(rt *router.Router) {
 }
 
 func (handler *CreateEventHandler) createEvent(w http.ResponseWriter, r *http.Request) error {
-	req, err := httpUtils.ParseBody[CreateEventRequest](r)
+	req, err := httpUtils.ParseBody[entities.Event](r)
 	if err != nil {
 		return errors.NewBadRequestError(err.Error())
 	}
 
-	event, err := req.ToDomain()
-	if err != nil {
-		return errors.NewBadRequestError(err.Error())
-	}
-
-	err = handler.CreateEventUC.Execute(r.Context(), event)
+	err = handler.CreateEventUC.Execute(r.Context(), &req)
 
 	if err != nil {
 		return err

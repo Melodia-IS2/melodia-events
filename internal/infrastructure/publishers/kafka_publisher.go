@@ -14,11 +14,11 @@ type KafkaEventPublisher struct {
 }
 
 func (p *KafkaEventPublisher) Publish(ctx context.Context, event *entities.Event) error {
-	data, _ := json.Marshal(event)
+	data, _ := json.Marshal(event.Publish.Payload)
 
 	return p.Writer.WriteMessages(ctx, kafka.Message{
-		Topic: event.Topic,
-		Key:   []byte(event.Topic),
+		Topic: event.Publish.Topic,
+		Key:   []byte(event.Publish.Topic),
 		Value: data,
 	})
 }

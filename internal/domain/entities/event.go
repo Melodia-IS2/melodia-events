@@ -6,24 +6,35 @@ import (
 	"github.com/google/uuid"
 )
 
-type ErrorLevel int
+type LogLevel int
 
 const (
-	NoErrorLevel      ErrorLevel = 0
-	ErrorLevelInfo    ErrorLevel = 1
-	ErrorLevelWarning ErrorLevel = 2
-	ErrorLevelError   ErrorLevel = 3
+	DebugLevel   LogLevel = 0
+	InfoLevel    LogLevel = 1
+	WarningLevel LogLevel = 2
+	ErrorLevel   LogLevel = 3
 )
 
 type Event struct {
-	ID          uuid.UUID
-	Topic       string
-	Title       string
-	Description string
-	Service     string
-	Payload     string
-	ErrorLevel  ErrorLevel
-	Token       string
-	CreatedAt   time.Time
-	IsPublished bool
+	ID        uuid.UUID     `json:"id"`
+	Publish   *PublishEvent `json:"publish"`
+	Log       *LogEvent     `json:"log"`
+	CreatedAt time.Time     `json:"created_at"`
+	Service   string        `json:"service"`
+	Token     string        `json:"token"`
+}
+
+type LogEvent struct {
+	Code    string         `json:"code"`
+	Message string         `json:"message"`
+	Payload map[string]any `json:"payload"`
+	Level   LogLevel       `json:"level"`
+}
+
+type PublishEvent struct {
+	Topic        string         `json:"topic"`
+	Title        string         `json:"title"`
+	Payload      map[string]any `json:"payload"`
+	PublishAfter time.Time      `json:"publish_after"`
+	IsPublished  bool           `json:"is_published"`
 }

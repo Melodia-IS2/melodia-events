@@ -1,25 +1,73 @@
 package events
 
 import (
+	"context"
+	"melodia-events/internal/domain/entities"
 	"time"
 )
 
-type ErrorLevel int
+var service string
 
-const (
-	NoErrorLevel      ErrorLevel = 0
-	ErrorLevelInfo    ErrorLevel = 1
-	ErrorLevelWarning ErrorLevel = 2
-	ErrorLevelError   ErrorLevel = 3
-)
+func SetService(s string) {
+	service = s
+}
 
-type Event struct {
-	Topic       string     `json:"topic"`
-	Title       string     `json:"title"`
-	Description string     `json:"description"`
-	Service     string     `json:"service"`
-	Payload     string     `json:"payload"`
-	ErrorLevel  ErrorLevel `json:"error_level"`
-	Token       string     `json:"token"`
-	CreatedAt   time.Time  `json:"created_at"`
+type EventBuilder struct {
+	event *entities.Event
+}
+
+func New(ctx context.Context) *EventBuilder {
+	token := ctx.Value("token").(string)
+
+	return &EventBuilder{
+		event: &entities.Event{
+			CreatedAt: time.Now(),
+			Service:   service,
+			Token:     token,
+		},
+	}
+}
+
+func (b *EventBuilder) Log(code string, message string, level entities.LogLevel, payload *map[string]any) *EventBuilder {
+	if payload == nil {
+		payload = &map[string]any{}
+	}
+	b.event.Log = &entities.LogEvent{
+		Code:    code,
+		Message: message,
+		Level:   level,
+		Payload: *payload,
+	}
+	return b
+}
+
+func (b *EventBuilder) Publish(topic string, title string, payload *map[string]any) *EventBuilder {
+	if payload == nil {
+		payload = &map[string]any{}
+	}
+	b.event.Publish = &entities.PublishEvent{
+		Topic:        topic,
+		Title:        title,
+		Payload:      *payload,
+		PublishAfter: time.Now(),
+		IsPublished:  false,
+	}
+	return b
+}
+func (b *EventBuilder) ProgrammedPublish(topic string, title string, payload *map[string]any, publishAfter time.Time) *EventBuilder {
+	if payload == nil {
+		payload = &map[string]any{}
+	}
+	b.event.Publish = &entities.PublishEvent{
+		Topic:        topic,
+		Title:        title,
+		Payload:      *payload,
+		PublishAfter: publishAfter,
+		IsPublished:  false,
+	}
+	return b
+}
+
+func (b *EventBuilder) Build() *entities.Event {
+	return b.event
 }

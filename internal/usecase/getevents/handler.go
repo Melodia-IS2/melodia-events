@@ -20,7 +20,7 @@ func (handler *GetEventsHandler) getEvents(w http.ResponseWriter, r *http.Reques
 		return err
 	}
 
-	router.Ok(w, FromDomainArray(events))
+	router.Ok(w, events)
 
 	return nil
 }
