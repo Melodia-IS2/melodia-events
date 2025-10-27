@@ -1,4 +1,4 @@
-module melodia-events
+module github.com/Melodia-IS2/melodia-events
 
 go 1.24.5
 

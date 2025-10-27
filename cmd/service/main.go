@@ -2,8 +2,9 @@ package main
 
 import (
 	"fmt"
-	"melodia-events/internal/config"
-	"melodia-events/internal/dependencies"
+
+	"github.com/Melodia-IS2/melodia-events/internal/config"
+	"github.com/Melodia-IS2/melodia-events/internal/dependencies"
 
 	"github.com/Melodia-IS2/melodia-go-utils/pkg/app"
 	"github.com/Melodia-IS2/melodia-go-utils/pkg/http"

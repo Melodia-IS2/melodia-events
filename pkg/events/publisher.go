@@ -5,8 +5,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"melodia-events/internal/domain/entities"
 	"net/http"
+
+	"github.com/Melodia-IS2/melodia-events/internal/domain/entities"
 )
 
 var eventHandlerDomain string

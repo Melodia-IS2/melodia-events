@@ -1,8 +1,9 @@
 package createevent
 
 import (
-	"melodia-events/internal/domain/entities"
 	"net/http"
+
+	"github.com/Melodia-IS2/melodia-events/internal/domain/entities"
 
 	"github.com/Melodia-IS2/melodia-go-utils/pkg/errors"
 	httpUtils "github.com/Melodia-IS2/melodia-go-utils/pkg/http"

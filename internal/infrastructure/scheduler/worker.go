@@ -3,8 +3,9 @@ package scheduler
 import (
 	"context"
 	"log"
-	"melodia-events/internal/domain/repositories"
 	"time"
+
+	"github.com/Melodia-IS2/melodia-events/internal/domain/repositories"
 )
 
 type Worker struct {

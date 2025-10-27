@@ -2,8 +2,9 @@ package persistence
 
 import (
 	"context"
-	"melodia-events/internal/domain/entities"
 	"time"
+
+	"github.com/Melodia-IS2/melodia-events/internal/domain/entities"
 
 	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/v2/bson"

@@ -2,13 +2,14 @@ package dependencies
 
 import (
 	"fmt"
-	"melodia-events/internal/config"
-	"melodia-events/internal/infrastructure/persistence"
-	"melodia-events/internal/infrastructure/publishers"
-	"melodia-events/internal/infrastructure/scheduler"
-	"melodia-events/internal/swagger"
-	"melodia-events/internal/usecase/createevent"
-	"melodia-events/internal/usecase/getevents"
+
+	"github.com/Melodia-IS2/melodia-events/internal/config"
+	"github.com/Melodia-IS2/melodia-events/internal/infrastructure/persistence"
+	"github.com/Melodia-IS2/melodia-events/internal/infrastructure/publishers"
+	"github.com/Melodia-IS2/melodia-events/internal/infrastructure/scheduler"
+	"github.com/Melodia-IS2/melodia-events/internal/swagger"
+	"github.com/Melodia-IS2/melodia-events/internal/usecase/createevent"
+	"github.com/Melodia-IS2/melodia-events/internal/usecase/getevents"
 
 	"github.com/Melodia-IS2/melodia-go-utils/pkg/app"
 	"github.com/Melodia-IS2/melodia-go-utils/pkg/router"

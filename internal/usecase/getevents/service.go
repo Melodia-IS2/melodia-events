@@ -3,8 +3,8 @@ package getevents
 import (
 	"context"
 
-	"melodia-events/internal/domain/entities"
-	"melodia-events/internal/domain/repositories"
+	"github.com/Melodia-IS2/melodia-events/internal/domain/entities"
+	"github.com/Melodia-IS2/melodia-events/internal/domain/repositories"
 )
 
 type GetEvents interface {

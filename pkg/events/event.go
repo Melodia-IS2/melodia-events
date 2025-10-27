@@ -2,8 +2,9 @@ package events
 
 import (
 	"context"
-	"melodia-events/internal/domain/entities"
 	"time"
+
+	"github.com/Melodia-IS2/melodia-events/internal/domain/entities"
 )
 
 var service string

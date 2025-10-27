@@ -2,7 +2,8 @@ package repositories
 
 import (
 	"context"
-	"melodia-events/internal/domain/entities"
+
+	"github.com/Melodia-IS2/melodia-events/internal/domain/entities"
 )
 
 type EventPublisher interface {
