@@ -5,10 +5,12 @@ import (
 	"melodia-events/internal/config"
 	"melodia-events/internal/infrastructure/persistence"
 	"melodia-events/internal/infrastructure/publishers"
+	"melodia-events/internal/infrastructure/scheduler"
 	"melodia-events/internal/swagger"
 	"melodia-events/internal/usecase/createevent"
 	"melodia-events/internal/usecase/getevents"
 
+	"github.com/Melodia-IS2/melodia-go-utils/pkg/app"
 	"github.com/Melodia-IS2/melodia-go-utils/pkg/router"
 	"github.com/segmentio/kafka-go"
 	"go.mongodb.org/mongo-driver/v2/mongo"
@@ -22,6 +24,7 @@ type HandlerContainer struct {
 	CreateEvent router.CanRegister
 	GetEvents   router.CanRegister
 	Swagger     router.CanRegister
+	Scheduler   app.Worker
 }
 
 func NewHandlerContainer(cfg *config.Config) *HandlerContainer {
@@ -49,6 +52,7 @@ func NewHandlerContainer(cfg *config.Config) *HandlerContainer {
 		Brokers: []string{cfg.KafkaURL},
 	})
 
+	print(cfg.KafkaURL)
 	/* Repositories */
 
 	eventRepo := &persistence.MongoEventRepository{
@@ -87,9 +91,19 @@ func NewHandlerContainer(cfg *config.Config) *HandlerContainer {
 
 	/* End of Handlers */
 
+	/* Workers */
+
+	schedulerWorker := &scheduler.Worker{
+		EventRepository: eventRepo,
+		EventPublisher:  eventPublisher,
+	}
+
+	/* End of Scheduler */
+
 	return &HandlerContainer{
 		CreateEvent: createEventHandl,
 		GetEvents:   getEventsHandler,
 		Swagger:     swaggerHandler,
+		Scheduler:   schedulerWorker,
 	}
 }

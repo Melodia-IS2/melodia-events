@@ -16,25 +16,25 @@ const (
 )
 
 type Event struct {
-	ID        uuid.UUID     `json:"id"`
-	Publish   *PublishEvent `json:"publish"`
-	Log       *LogEvent     `json:"log"`
-	CreatedAt time.Time     `json:"created_at"`
-	Service   string        `json:"service"`
-	Token     string        `json:"token"`
+	ID        uuid.UUID     `json:"id" bson:"_id"`
+	Publish   *PublishEvent `json:"publish" bson:"publish"`
+	Log       *LogEvent     `json:"log" bson:"log"`
+	CreatedAt time.Time     `json:"created_at" bson:"created_at"`
+	Service   string        `json:"service" bson:"service"`
+	Token     string        `json:"token" bson:"token"`
 }
 
 type LogEvent struct {
-	Code    string         `json:"code"`
-	Message string         `json:"message"`
-	Payload map[string]any `json:"payload"`
-	Level   LogLevel       `json:"level"`
+	Code    string         `json:"code" bson:"code"`
+	Message string         `json:"message" bson:"message"`
+	Payload map[string]any `json:"payload" bson:"payload"`
+	Level   LogLevel       `json:"level" bson:"level"`
 }
 
 type PublishEvent struct {
-	Topic        string         `json:"topic"`
-	Title        string         `json:"title"`
-	Payload      map[string]any `json:"payload"`
-	PublishAfter time.Time      `json:"publish_after"`
-	IsPublished  bool           `json:"is_published"`
+	Topic        string         `json:"topic" bson:"topic"`
+	Title        string         `json:"title" bson:"title"`
+	Payload      map[string]any `json:"payload" bson:"payload"`
+	PublishAfter time.Time      `json:"publish_after" bson:"publish_after"`
+	IsPublished  bool           `json:"is_published" bson:"is_published"`
 }

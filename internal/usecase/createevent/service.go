@@ -2,6 +2,7 @@ package createevent
 
 import (
 	"context"
+	"time"
 
 	"melodia-events/internal/domain/entities"
 	"melodia-events/internal/domain/repositories"
@@ -21,7 +22,7 @@ type CreateEventImpl struct {
 func (u *CreateEventImpl) Execute(ctx context.Context, event *entities.Event) (err error) {
 	event.ID = uuid.New()
 
-	if event.Publish != nil {
+	if event.Publish != nil && !event.Publish.IsPublished && event.Publish.PublishAfter.Before(time.Now()) {
 		if err := u.EventPublisher.Publish(ctx, event); err != nil {
 			print(err.Error())
 			return err

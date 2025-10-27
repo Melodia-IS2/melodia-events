@@ -50,7 +50,6 @@ func (b *EventBuilder) Publish(topic string, title string, payload *map[string]a
 		Title:        title,
 		Payload:      *payload,
 		PublishAfter: time.Now(),
-		IsPublished:  false,
 	}
 	return b
 }
@@ -63,7 +62,6 @@ func (b *EventBuilder) ProgrammedPublish(topic string, title string, payload *ma
 		Title:        title,
 		Payload:      *payload,
 		PublishAfter: publishAfter,
-		IsPublished:  false,
 	}
 	return b
 }

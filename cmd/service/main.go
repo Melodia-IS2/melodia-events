@@ -33,6 +33,7 @@ func main() {
 		RegisterHandler(deps.CreateEvent).
 		RegisterHandler(deps.GetEvents).
 		RegisterHandler(deps.Swagger).
+		RegisterWorker(deps.Scheduler).
 		Build()
 
 	if err := app.Run(); err != nil {
