@@ -13,6 +13,7 @@ services:
       MONGO_PASSWORD: ${MONGO_PASSWORD:-events_password}
       MONGO_DATABASE: ${MONGO_DATABASE:-events}
       KAFKA_URL: kafka:9092
+      KAFKA_TOPICS: ${KAFKA_TOPICS:-artists,releases,songs,events,__consumer_offsets}
       REDIS_HOST: ${REDIS_HOST:-redis}
       REDIS_PORT: ${REDIS_PORT:-6379}
       REDIS_PASSWORD: ${REDIS_PASSWORD:-supersecret}
@@ -69,18 +70,6 @@ services:
       - melodia-network
     profiles: ["infra", "app"]
 
-  kafka-init:
-      image: confluentinc/cp-kafka:latest
-      container_name: kafka-init
-      depends_on:
-        - kafka
-      networks:
-        - melodia-network
-      volumes:
-        - ./docs/kafka/kafka-init.sh:/scripts/kafka-init.sh
-      entrypoint: ["/bin/bash", "/scripts/kafka-init.sh"]
-      profiles: ["infra", "app"]
-      
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
     ports:

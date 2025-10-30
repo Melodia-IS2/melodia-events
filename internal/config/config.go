@@ -1,6 +1,8 @@
 package config
 
 import (
+	"strings"
+
 	"github.com/Melodia-IS2/melodia-go-utils/pkg/env"
 	"github.com/joho/godotenv"
 )
@@ -9,6 +11,7 @@ type Config struct {
 	Port        string
 	MongoConfig MongoConfig
 	KafkaURL    string
+	KafkaTopics []string
 	RedisConfig RedisConfig
 }
 
@@ -43,6 +46,7 @@ func Load() *Config {
 			Port:     env.GetEnv("REDIS_PORT", ""),
 			Password: env.GetEnv("REDIS_PASSWORD", ""),
 		},
-		KafkaURL: env.GetEnv("KAFKA_URL", ""),
+		KafkaURL:    env.GetEnv("KAFKA_URL", ""),
+		KafkaTopics: strings.Split(env.GetEnv("KAFKA_TOPICS", "__consumer_offsets"), ","),
 	}
 }

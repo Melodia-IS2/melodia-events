@@ -2,8 +2,10 @@ package dependencies
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/Melodia-IS2/melodia-events/internal/config"
+	kafkahelper "github.com/Melodia-IS2/melodia-events/internal/infrastructure/kafka"
 	"github.com/Melodia-IS2/melodia-events/internal/infrastructure/persistence"
 	"github.com/Melodia-IS2/melodia-events/internal/infrastructure/publishers"
 	"github.com/Melodia-IS2/melodia-events/internal/infrastructure/scheduler"
@@ -52,6 +54,16 @@ func NewHandlerContainer(cfg *config.Config) *HandlerContainer {
 
 	mongoDatabase := client.Database(cfg.MongoConfig.Database)
 	logsCollection := mongoDatabase.Collection("logs")
+
+	if err := kafkahelper.WaitForKafka(cfg.KafkaURL, 30*time.Second); err != nil {
+		panic(fmt.Errorf("Kafka not available: %w", err))
+	}
+
+	if err := kafkahelper.EnsureTopics(cfg.KafkaURL, cfg.KafkaTopics); err != nil {
+		fmt.Printf("Error creating topics: %v\n", err)
+	}
+
+	_ = kafkahelper.ListTopics(cfg.KafkaURL)
 
 	kafkaWriter = kafka.NewWriter(kafka.WriterConfig{
 		Brokers: []string{cfg.KafkaURL},
