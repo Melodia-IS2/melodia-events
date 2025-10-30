@@ -14,6 +14,7 @@ import (
 	"github.com/Melodia-IS2/melodia-events/internal/usecase/getlogs"
 	"github.com/Melodia-IS2/melodia-go-utils/pkg/app"
 	"github.com/Melodia-IS2/melodia-go-utils/pkg/router"
+	"github.com/redis/go-redis/v9"
 	"github.com/segmentio/kafka-go"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
@@ -50,18 +51,23 @@ func NewHandlerContainer(cfg *config.Config) *HandlerContainer {
 	}
 
 	mongoDatabase := client.Database(cfg.MongoConfig.Database)
-	eventsCollection := mongoDatabase.Collection("events")
 	logsCollection := mongoDatabase.Collection("logs")
 
 	kafkaWriter = kafka.NewWriter(kafka.WriterConfig{
 		Brokers: []string{cfg.KafkaURL},
 	})
 
-	print(cfg.KafkaURL)
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     fmt.Sprintf("%s:%s", cfg.RedisConfig.Host, cfg.RedisConfig.Port),
+		Password: cfg.RedisConfig.Password,
+		DB:       0,
+	})
+
 	/* Repositories */
 
-	eventRepo := &persistence.MongoEventRepository{
-		Collection: eventsCollection,
+	eventRepo := &persistence.RedisEventRepository{
+		Rdb: rdb,
+		Key: "events",
 	}
 
 	logRepo := &persistence.MongoLogRepository{

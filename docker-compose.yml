@@ -13,6 +13,9 @@ services:
       MONGO_PASSWORD: ${MONGO_PASSWORD:-events_password}
       MONGO_DATABASE: ${MONGO_DATABASE:-events}
       KAFKA_URL: kafka:9092
+      REDIS_HOST: ${REDIS_HOST:-redis}
+      REDIS_PORT: ${REDIS_PORT:-6379}
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-supersecret}
     depends_on:
       kafka:
         condition: service_started
@@ -92,8 +95,24 @@ services:
       - melodia-network
     profiles: ["app","infra", "dev"]
 
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    command: ["redis-server", "--appendonly", "yes"]
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-supersecret}
+    volumes:
+      - redis-data:/data
+    networks:
+      - melodia-network
+    restart: unless-stopped
+    profiles: ["app", "infra", "dev"]
+
 volumes:
   melodia_events_mongo_data:
+  redis-data:
 
 
 networks:

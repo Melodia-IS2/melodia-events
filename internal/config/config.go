@@ -9,6 +9,7 @@ type Config struct {
 	Port        string
 	MongoConfig MongoConfig
 	KafkaURL    string
+	RedisConfig RedisConfig
 }
 
 type MongoConfig struct {
@@ -17,6 +18,12 @@ type MongoConfig struct {
 	Host     string
 	Password string
 	Database string
+}
+
+type RedisConfig struct {
+	Host     string
+	Port     string
+	Password string
 }
 
 func Load() *Config {
@@ -31,7 +38,11 @@ func Load() *Config {
 			Password: env.GetEnv("MONGO_PASSWORD", ""),
 			Database: env.GetEnv("MONGO_DATABASE", ""),
 		},
-
+		RedisConfig: RedisConfig{
+			Host:     env.GetEnv("REDIS_HOST", ""),
+			Port:     env.GetEnv("REDIS_PORT", ""),
+			Password: env.GetEnv("REDIS_PASSWORD", ""),
+		},
 		KafkaURL: env.GetEnv("KAFKA_URL", ""),
 	}
 }

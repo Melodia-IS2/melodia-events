@@ -22,19 +22,17 @@ type CreateEventImpl struct {
 func (u *CreateEventImpl) Execute(ctx context.Context, event *entities.Event) (err error) {
 	event.ID = uuid.New()
 
-	if event.Publish != nil && !event.Publish.IsPublished && event.Publish.PublishAfter.Before(time.Now()) {
+	if event.PublishAfter.Before(time.Now()) {
 		if err := u.EventPublisher.Publish(ctx, event); err != nil {
 			print(err.Error())
 			return err
 		}
-		event.Publish.IsPublished = true
+		return nil
 	}
 
-	if event.Log != nil {
-		if err := u.EventRepository.Register(ctx, event); err != nil {
-			print(err.Error())
-			return err
-		}
+	if err := u.EventRepository.Schedule(ctx, *event); err != nil {
+		print(err.Error())
+		return err
 	}
 
 	return nil

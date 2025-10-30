@@ -8,13 +8,13 @@ import (
 )
 
 type GetEvents interface {
-	Execute(ctx context.Context) ([]*entities.Event, error)
+	Execute(ctx context.Context) ([]entities.Event, error)
 }
 
 type GetEventsImpl struct {
 	EventRepository repositories.EventRepository
 }
 
-func (u *GetEventsImpl) Execute(ctx context.Context) ([]*entities.Event, error) {
+func (u *GetEventsImpl) Execute(ctx context.Context) ([]entities.Event, error) {
 	return u.EventRepository.FindAll(ctx)
 }

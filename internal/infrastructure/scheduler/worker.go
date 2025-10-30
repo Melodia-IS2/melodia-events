@@ -35,18 +35,13 @@ func (w *Worker) Stop() error {
 }
 
 func (w *Worker) processDue(ctx context.Context) error {
-	now := time.Now()
-	events, err := w.EventRepository.FindDueUnpublished(ctx, now)
+	events, err := w.EventRepository.FetchDueEvents(ctx, 100)
 	if err != nil {
 		return err
 	}
 	for _, ev := range events {
-		if err := w.EventPublisher.Publish(ctx, ev); err != nil {
+		if err := w.EventPublisher.Publish(ctx, &ev); err != nil {
 			log.Printf("failed to publish event %v: %v", ev.ID, err)
-			continue
-		}
-		if err := w.EventRepository.MarkPublished(ctx, ev.ID); err != nil {
-			log.Printf("failed to mark event %v as published: %v", ev.ID, err)
 			continue
 		}
 	}
