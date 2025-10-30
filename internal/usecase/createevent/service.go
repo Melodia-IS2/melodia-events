@@ -27,6 +27,7 @@ func (u *CreateEventImpl) Execute(ctx context.Context, event *entities.Event) (e
 			print(err.Error())
 			return err
 		}
+		event.Publish.IsPublished = true
 	}
 
 	if event.Log != nil {

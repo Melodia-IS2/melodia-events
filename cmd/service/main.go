@@ -33,6 +33,8 @@ func main() {
 	app := builder.
 		RegisterHandler(deps.CreateEvent).
 		RegisterHandler(deps.GetEvents).
+		RegisterHandler(deps.CreateLog).
+		RegisterHandler(deps.GetLogs).
 		RegisterHandler(deps.Swagger).
 		RegisterWorker(deps.Scheduler).
 		Build()

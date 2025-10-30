@@ -15,6 +15,7 @@ RUN apk --no-cache add ca-certificates
 WORKDIR /app/
 
 COPY --from=builder /app/melodia-events .
+COPY --from=builder /app/docs/kafka/kafka-init.sh ./scripts/kafka-init.sh
 
 EXPOSE 8085
 

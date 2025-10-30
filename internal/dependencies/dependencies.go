@@ -9,8 +9,9 @@ import (
 	"github.com/Melodia-IS2/melodia-events/internal/infrastructure/scheduler"
 	"github.com/Melodia-IS2/melodia-events/internal/swagger"
 	"github.com/Melodia-IS2/melodia-events/internal/usecase/createevent"
+	"github.com/Melodia-IS2/melodia-events/internal/usecase/createlog"
 	"github.com/Melodia-IS2/melodia-events/internal/usecase/getevents"
-
+	"github.com/Melodia-IS2/melodia-events/internal/usecase/getlogs"
 	"github.com/Melodia-IS2/melodia-go-utils/pkg/app"
 	"github.com/Melodia-IS2/melodia-go-utils/pkg/router"
 	"github.com/segmentio/kafka-go"
@@ -24,7 +25,9 @@ import (
 type HandlerContainer struct {
 	CreateEvent router.CanRegister
 	GetEvents   router.CanRegister
+	CreateLog   router.CanRegister
 	Swagger     router.CanRegister
+	GetLogs     router.CanRegister
 	Scheduler   app.Worker
 }
 
@@ -46,8 +49,9 @@ func NewHandlerContainer(cfg *config.Config) *HandlerContainer {
 		panic(err)
 	}
 
-	eventsDatabase := client.Database(cfg.MongoConfig.Database)
-	eventsCollection := eventsDatabase.Collection("events")
+	mongoDatabase := client.Database(cfg.MongoConfig.Database)
+	eventsCollection := mongoDatabase.Collection("events")
+	logsCollection := mongoDatabase.Collection("logs")
 
 	kafkaWriter = kafka.NewWriter(kafka.WriterConfig{
 		Brokers: []string{cfg.KafkaURL},
@@ -58,6 +62,10 @@ func NewHandlerContainer(cfg *config.Config) *HandlerContainer {
 
 	eventRepo := &persistence.MongoEventRepository{
 		Collection: eventsCollection,
+	}
+
+	logRepo := &persistence.MongoLogRepository{
+		Collection: logsCollection,
 	}
 
 	eventPublisher := &publishers.KafkaEventPublisher{
@@ -76,6 +84,13 @@ func NewHandlerContainer(cfg *config.Config) *HandlerContainer {
 		EventRepository: eventRepo,
 	}
 
+	createLogUC := &createlog.CreateLogImpl{
+		LogRepository: logRepo,
+	}
+
+	getLogsUC := &getlogs.GetLogsImpl{
+		LogRepository: logRepo,
+	}
 	/* End of Usecases */
 
 	/* Handlers */
@@ -86,6 +101,10 @@ func NewHandlerContainer(cfg *config.Config) *HandlerContainer {
 
 	getEventsHandler := &getevents.GetEventsHandler{
 		GetEventsUC: getEventsUC,
+	}
+
+	createLogHandler := &createlog.CreateLogHandler{
+		CreateLogUC: createLogUC,
 	}
 
 	swaggerHandler := &swagger.SwaggerHandler{}
@@ -99,12 +118,18 @@ func NewHandlerContainer(cfg *config.Config) *HandlerContainer {
 		EventPublisher:  eventPublisher,
 	}
 
+	getLogsHandler := &getlogs.GetLogsHandler{
+		GetLogsUC: getLogsUC,
+	}
+
 	/* End of Scheduler */
 
 	return &HandlerContainer{
 		CreateEvent: createEventHandl,
 		GetEvents:   getEventsHandler,
+		CreateLog:   createLogHandler,
 		Swagger:     swaggerHandler,
+		GetLogs:     getLogsHandler,
 		Scheduler:   schedulerWorker,
 	}
 }

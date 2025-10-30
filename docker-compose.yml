@@ -60,13 +60,24 @@ services:
       
       - KAFKA_LOG_RETENTION_HOURS=24
       - KAFKA_LOG_RETENTION_BYTES=1073741824
-
     ports:
       - "9092:9092"
     networks:
       - melodia-network
     profiles: ["infra", "app"]
 
+  kafka-init:
+      image: confluentinc/cp-kafka:latest
+      container_name: kafka-init
+      depends_on:
+        - kafka
+      networks:
+        - melodia-network
+      volumes:
+        - ./docs/kafka/kafka-init.sh:/scripts/kafka-init.sh
+      entrypoint: ["/bin/bash", "/scripts/kafka-init.sh"]
+      profiles: ["infra", "app"]
+      
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
     ports:
@@ -74,6 +85,7 @@ services:
     environment:
       - KAFKA_CLUSTERS_0_NAME=melodia
       - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka:9092
+    
     depends_on:
       - kafka
     networks:
@@ -83,6 +95,9 @@ services:
 volumes:
   melodia_events_mongo_data:
 
+
 networks:
   melodia-network:
     driver: bridge
+    name: melodia-network
+    

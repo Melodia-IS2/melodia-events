@@ -4,6 +4,8 @@ github.com/Melodia-IS2/melodia-go-utils v0.16.0 h1:Jdpy80/RGantpHsmoiu3U9rlcSfL3
 github.com/Melodia-IS2/melodia-go-utils v0.16.0/go.mod h1:4R8/oB2qlG3uzTMqjcfgrUAfQrePmWdEFtOeb3bRqNM=
 github.com/Melodia-IS2/melodia-go-utils v0.20.0 h1:oZiz6F63fmgJFS27RfqPonf3ODFQfdj3Eo7hC4d/Mvk=
 github.com/Melodia-IS2/melodia-go-utils v0.20.0/go.mod h1:4R8/oB2qlG3uzTMqjcfgrUAfQrePmWdEFtOeb3bRqNM=
+github.com/Melodia-IS2/melodia-go-utils v0.20.5 h1:Nce5/tX/ti8jMcMXf0VrdHIr6p8X+Qmcb93ujRQnJyU=
+github.com/Melodia-IS2/melodia-go-utils v0.20.5/go.mod h1:zvZkzqXpiquo23UkysaAtspXxmGNxpsOAwW5Ia5HSoQ=
 github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ33E=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
