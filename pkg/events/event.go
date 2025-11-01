@@ -9,16 +9,16 @@ import (
 
 type Event struct {
 	Topic        string         `json:"topic"`
-	Title        string         `json:"title"`
+	Key          string         `json:"key"`
 	Payload      map[string]any `json:"payload"`
 	PublishAfter time.Time      `json:"publish_after"`
 }
 
-func (e *Event) ToEntity() *entities.Event {
+func (e *Event) ToDomain() *entities.Event {
 	return &entities.Event{
 		ID:           uuid.New(),
 		Topic:        e.Topic,
-		Title:        e.Title,
+		Key:          e.Key,
 		Payload:      e.Payload,
 		PublishAfter: e.PublishAfter,
 		CreatedAt:    time.Now(),

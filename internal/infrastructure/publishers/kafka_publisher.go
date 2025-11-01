@@ -18,7 +18,7 @@ func (p *KafkaEventPublisher) Publish(ctx context.Context, event *entities.Event
 
 	return p.Writer.WriteMessages(ctx, kafka.Message{
 		Topic: event.Topic,
-		Key:   []byte(event.Title),
+		Key:   []byte(event.Key),
 		Value: data,
 	})
 }

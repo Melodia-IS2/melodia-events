@@ -17,7 +17,7 @@ func SetEventHandlerDomain(domain string) {
 func Publish(ctx context.Context, event Event) error {
 	url := fmt.Sprintf("%s/event", eventHandlerDomain)
 
-	domainEvent := event.ToEntity()
+	domainEvent := event.ToDomain()
 	data, _ := json.Marshal(domainEvent)
 
 	req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewBuffer(data))

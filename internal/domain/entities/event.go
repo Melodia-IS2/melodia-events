@@ -18,7 +18,7 @@ const (
 type Event struct {
 	ID           uuid.UUID      `json:"id" bson:"_id"`
 	Topic        string         `json:"topic" bson:"topic"`
-	Title        string         `json:"title" bson:"title"`
+	Key          string         `json:"key" bson:"key"`
 	Payload      map[string]any `json:"payload" bson:"payload"`
 	PublishAfter time.Time      `json:"publish_after" bson:"publish_after"`
 	CreatedAt    time.Time      `json:"created_at" bson:"created_at"`
