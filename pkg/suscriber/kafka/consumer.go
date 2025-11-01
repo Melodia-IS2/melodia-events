@@ -8,7 +8,7 @@ import (
 	"github.com/segmentio/kafka-go"
 )
 
-type MessageHandler func(ctx context.Context, topic string, msg []byte) error
+type MessageHandler func(ctx context.Context, topic string, key string, msg []byte) error
 
 type Config struct {
 	Brokers []string
@@ -47,7 +47,7 @@ func (c *Consumer) Start(ctx context.Context) error {
 			continue
 		}
 
-		if err := c.handler(ctx, m.Topic, m.Value); err != nil {
+		if err := c.handler(ctx, m.Topic, string(m.Key), m.Value); err != nil {
 			log.Printf("Error processing message: %v", err)
 		}
 	}
