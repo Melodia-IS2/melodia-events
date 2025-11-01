@@ -41,17 +41,52 @@ func NewBatchConsumer(cfg BatchConfig, handler BatchMessageHandler) *BatchConsum
 func (c *BatchConsumer) Start(ctx context.Context) error {
 	log.Printf("Batch consumer listening to topic: %s", c.reader.Config().Topic)
 
+	msgCh := make(chan kafka.Message)
+	errCh := make(chan error)
+
+	go func() {
+		for {
+			m, err := c.reader.ReadMessage(ctx)
+			if err != nil {
+				if ctx.Err() != nil {
+					return
+				}
+				errCh <- err
+				continue
+			}
+			msgCh <- m
+		}
+	}()
+
 	var (
 		batch   [][]byte
 		lastKey string
-		timer   = time.NewTimer(c.cfg.BatchTimeout)
 	)
+	timer := time.NewTimer(c.cfg.BatchTimeout)
 	defer timer.Stop()
 
 	for {
 		select {
 		case <-ctx.Done():
 			return nil
+
+		case err := <-errCh:
+			log.Printf("Error reading message: %v", err)
+
+		case m := <-msgCh:
+			batch = append(batch, m.Value)
+			lastKey = string(m.Key)
+
+			if len(batch) >= c.cfg.BatchSize {
+				if err := c.flushBatch(ctx, m.Topic, lastKey, &batch); err != nil {
+					log.Printf("Error processing batch (full): %v", err)
+				}
+				batch = batch[:0]
+				if !timer.Stop() {
+					<-timer.C
+				}
+				timer.Reset(c.cfg.BatchTimeout)
+			}
 
 		case <-timer.C:
 			if len(batch) > 0 {
@@ -61,28 +96,6 @@ func (c *BatchConsumer) Start(ctx context.Context) error {
 				batch = batch[:0]
 			}
 			timer.Reset(c.cfg.BatchTimeout)
-
-		default:
-			m, err := c.reader.ReadMessage(ctx)
-			if err != nil {
-				if ctx.Err() != nil {
-					return nil
-				}
-				log.Printf("Error reading message: %v", err)
-				time.Sleep(time.Second)
-				continue
-			}
-
-			batch = append(batch, m.Value)
-			lastKey = string(m.Key)
-
-			if len(batch) >= c.cfg.BatchSize {
-				if err := c.flushBatch(ctx, m.Topic, lastKey, &batch); err != nil {
-					log.Printf("Error processing batch: %v", err)
-				}
-				batch = batch[:0]
-				timer.Reset(c.cfg.BatchTimeout)
-			}
 		}
 	}
 }
