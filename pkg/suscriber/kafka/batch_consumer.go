@@ -53,6 +53,15 @@ func (c *BatchConsumer) Start(ctx context.Context) error {
 		case <-ctx.Done():
 			return nil
 
+		case <-timer.C:
+			if len(batch) > 0 {
+				if err := c.flushBatch(ctx, c.reader.Config().Topic, lastKey, &batch); err != nil {
+					log.Printf("Error processing batch (timeout): %v", err)
+				}
+				batch = batch[:0]
+			}
+			timer.Reset(c.cfg.BatchTimeout)
+
 		default:
 			m, err := c.reader.ReadMessage(ctx)
 			if err != nil {
@@ -71,18 +80,8 @@ func (c *BatchConsumer) Start(ctx context.Context) error {
 				if err := c.flushBatch(ctx, m.Topic, lastKey, &batch); err != nil {
 					log.Printf("Error processing batch: %v", err)
 				}
+				batch = batch[:0]
 				timer.Reset(c.cfg.BatchTimeout)
-			}
-
-			select {
-			case <-timer.C:
-				if len(batch) > 0 {
-					if err := c.flushBatch(ctx, m.Topic, lastKey, &batch); err != nil {
-						log.Printf("Error processing batch: %v", err)
-					}
-				}
-				timer.Reset(c.cfg.BatchTimeout)
-			default:
 			}
 		}
 	}
