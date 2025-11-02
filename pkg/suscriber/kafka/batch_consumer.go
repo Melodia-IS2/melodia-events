@@ -8,7 +8,12 @@ import (
 	"github.com/segmentio/kafka-go"
 )
 
-type BatchMessageHandler func(ctx context.Context, topic string, key string, msgs [][]byte) error
+type BatchMessage struct {
+	Key   string
+	Value []byte
+}
+
+type BatchMessageHandler func(ctx context.Context, topic string, msgs []BatchMessage) error
 
 type BatchConfig struct {
 	Brokers      []string
@@ -59,8 +64,7 @@ func (c *BatchConsumer) Start(ctx context.Context) error {
 	}()
 
 	var (
-		batch   [][]byte
-		lastKey string
+		batch []BatchMessage
 	)
 	timer := time.NewTimer(c.cfg.BatchTimeout)
 	defer timer.Stop()
@@ -74,11 +78,10 @@ func (c *BatchConsumer) Start(ctx context.Context) error {
 			log.Printf("Error reading message: %v", err)
 
 		case m := <-msgCh:
-			batch = append(batch, m.Value)
-			lastKey = string(m.Key)
+			batch = append(batch, BatchMessage{Key: string(m.Key), Value: m.Value})
 
 			if len(batch) >= c.cfg.BatchSize {
-				if err := c.flushBatch(ctx, m.Topic, lastKey, &batch); err != nil {
+				if err := c.flushBatch(ctx, c.reader.Config().Topic, &batch); err != nil {
 					log.Printf("Error processing batch (full): %v", err)
 				}
 				batch = batch[:0]
@@ -90,7 +93,7 @@ func (c *BatchConsumer) Start(ctx context.Context) error {
 
 		case <-timer.C:
 			if len(batch) > 0 {
-				if err := c.flushBatch(ctx, c.reader.Config().Topic, lastKey, &batch); err != nil {
+				if err := c.flushBatch(ctx, c.reader.Config().Topic, &batch); err != nil {
 					log.Printf("Error processing batch (timeout): %v", err)
 				}
 				batch = batch[:0]
@@ -100,8 +103,8 @@ func (c *BatchConsumer) Start(ctx context.Context) error {
 	}
 }
 
-func (c *BatchConsumer) flushBatch(ctx context.Context, topic, key string, batch *[][]byte) error {
-	err := c.handler(ctx, topic, key, *batch)
+func (c *BatchConsumer) flushBatch(ctx context.Context, topic string, batch *[]BatchMessage) error {
+	err := c.handler(ctx, topic, *batch)
 	*batch = (*batch)[:0]
 	return err
 }
