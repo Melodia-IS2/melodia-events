@@ -30,14 +30,21 @@ type BatchConsumer struct {
 }
 
 func NewBatchConsumer(cfg BatchConfig, handler BatchMessageHandler) *BatchConsumer {
+	r := kafka.NewReader(kafka.ReaderConfig{
+		Brokers:  cfg.Brokers,
+		GroupID:  cfg.GroupID,
+		Topic:    cfg.Topic,
+		MinBytes: 10e3,
+		MaxBytes: 10e6,
+	})
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	_ = r.SetOffsetAt(ctx, time.Now())
+
 	return &BatchConsumer{
-		reader: kafka.NewReader(kafka.ReaderConfig{
-			Brokers:  cfg.Brokers,
-			GroupID:  cfg.GroupID,
-			Topic:    cfg.Topic,
-			MinBytes: 10e3,
-			MaxBytes: 10e6,
-		}),
+		reader:  r,
 		handler: handler,
 		cfg:     cfg,
 	}

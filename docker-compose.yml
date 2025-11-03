@@ -108,6 +108,4 @@ volumes:
 
 networks:
   melodia-network:
-    driver: bridge
-    name: melodia-network
-    
+    external: true

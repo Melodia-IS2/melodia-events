@@ -22,14 +22,21 @@ type SingleConsumer struct {
 }
 
 func NewSingleConsumer(cfg Config, handler MessageHandler) *SingleConsumer {
+	reader := kafka.NewReader(kafka.ReaderConfig{
+		Brokers:  cfg.Brokers,
+		GroupID:  cfg.GroupID,
+		Topic:    cfg.Topic,
+		MinBytes: 10e3,
+		MaxBytes: 10e6,
+	})
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	_ = reader.SetOffsetAt(ctx, time.Now())
+
 	return &SingleConsumer{
-		reader: kafka.NewReader(kafka.ReaderConfig{
-			Brokers:  cfg.Brokers,
-			GroupID:  cfg.GroupID,
-			Topic:    cfg.Topic,
-			MinBytes: 10e3,
-			MaxBytes: 10e6,
-		}),
+		reader:  reader,
 		handler: handler,
 	}
 }

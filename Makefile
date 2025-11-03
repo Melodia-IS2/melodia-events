@@ -1,13 +1,23 @@
 # Variables
 DOCKER_COMPOSE=docker compose
+NETWORK_NAME = melodia-network
 
-.PHONY: up-app up-infra up-test up-dev down logs deps lint test-coverage kill
+.PHONY: up-app up-infra up-test up-dev down logs deps lint test-coverage kill ensure-network
 
-up-app:
+ensure-network:
+	@echo "🔍 Verificando red $(NETWORK_NAME)..."
+	@if ! docker network inspect $(NETWORK_NAME) >/dev/null 2>&1; then \
+		echo "🌐 Red $(NETWORK_NAME) no existe, creando..."; \
+		docker network create --driver bridge $(NETWORK_NAME); \
+	else \
+		echo "✅ Red $(NETWORK_NAME) ya existe"; \
+	fi
+
+up-app: ensure-network
 	@echo "🔹 Levantando APP + DB + Minio..."
 	$(DOCKER_COMPOSE) --profile app up -d
 
-up-infra:
+up-infra: ensure-network
 	@echo "🔹 Levantando solo DB + Minio..."
 	$(DOCKER_COMPOSE) --profile infra up -d
 
