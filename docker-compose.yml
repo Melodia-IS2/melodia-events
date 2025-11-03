@@ -23,7 +23,9 @@ services:
       mongo:
         condition: service_healthy
     networks:
-      - melodia-network
+      melodia-network:
+        aliases:
+            - melodia_events
     profiles: ["app", "infra", "dev"]
 
   mongo:

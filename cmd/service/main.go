@@ -6,6 +6,9 @@ import (
 	"github.com/Melodia-IS2/melodia-events/internal/config"
 	"github.com/Melodia-IS2/melodia-events/internal/dependencies"
 
+	"github.com/go-chi/chi/v5/middleware"
+	"github.com/rs/cors"
+
 	"github.com/Melodia-IS2/melodia-go-utils/pkg/app"
 	"github.com/Melodia-IS2/melodia-go-utils/pkg/http"
 	"github.com/Melodia-IS2/melodia-go-utils/pkg/router"
@@ -31,6 +34,9 @@ func main() {
 	}
 
 	app := builder.
+		RegisterMiddleware(middleware.Logger).
+		RegisterMiddleware(middleware.Recoverer).
+		RegisterMiddleware(cors.AllowAll().Handler).
 		RegisterHandler(deps.CreateEvent).
 		RegisterHandler(deps.GetEvents).
 		RegisterHandler(deps.CreateLog).
