@@ -11,6 +11,7 @@ import (
 type BatchMessage struct {
 	Key   string
 	Value []byte
+	Date  time.Time
 }
 
 type BatchMessageHandler func(ctx context.Context, topic string, msgs []BatchMessage) error
@@ -85,7 +86,7 @@ func (c *BatchConsumer) Start(ctx context.Context) error {
 			log.Printf("Error reading message: %v", err)
 
 		case m := <-msgCh:
-			batch = append(batch, BatchMessage{Key: string(m.Key), Value: m.Value})
+			batch = append(batch, BatchMessage{Key: string(m.Key), Value: m.Value, Date: m.Time})
 
 			if len(batch) >= c.cfg.BatchSize {
 				if err := c.flushBatch(ctx, c.reader.Config().Topic, &batch); err != nil {
