@@ -43,6 +43,7 @@ func main() {
 		RegisterHandler(deps.GetLogs).
 		RegisterHandler(deps.Swagger).
 		RegisterWorker(deps.Scheduler).
+		RegisterConsumer(deps.ConsumerUserDevices).
 		Build()
 
 	if err := app.Run(); err != nil {

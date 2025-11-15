@@ -10,10 +10,12 @@ import (
 	"github.com/Melodia-IS2/melodia-events/internal/infrastructure/publishers"
 	"github.com/Melodia-IS2/melodia-events/internal/infrastructure/scheduler"
 	"github.com/Melodia-IS2/melodia-events/internal/swagger"
+	"github.com/Melodia-IS2/melodia-events/internal/usecase/consumerdevices"
 	"github.com/Melodia-IS2/melodia-events/internal/usecase/createevent"
 	"github.com/Melodia-IS2/melodia-events/internal/usecase/createlog"
 	"github.com/Melodia-IS2/melodia-events/internal/usecase/getevents"
 	"github.com/Melodia-IS2/melodia-events/internal/usecase/getlogs"
+	kafkaconsumer "github.com/Melodia-IS2/melodia-events/pkg/suscriber/kafka"
 	"github.com/Melodia-IS2/melodia-go-utils/pkg/app"
 	"github.com/Melodia-IS2/melodia-go-utils/pkg/router"
 	"github.com/redis/go-redis/v9"
@@ -26,12 +28,13 @@ import (
 
 // TODO ADD DEFERS
 type HandlerContainer struct {
-	CreateEvent router.CanRegister
-	GetEvents   router.CanRegister
-	CreateLog   router.CanRegister
-	Swagger     router.CanRegister
-	GetLogs     router.CanRegister
-	Scheduler   app.Worker
+	CreateEvent         router.CanRegister
+	GetEvents           router.CanRegister
+	CreateLog           router.CanRegister
+	Swagger             router.CanRegister
+	GetLogs             router.CanRegister
+	ConsumerUserDevices kafkaconsumer.Consumer
+	Scheduler           app.Worker
 }
 
 func NewHandlerContainer(cfg *config.Config) *HandlerContainer {
@@ -80,6 +83,11 @@ func NewHandlerContainer(cfg *config.Config) *HandlerContainer {
 	eventRepo := &persistence.RedisEventRepository{
 		Rdb: rdb,
 		Key: "events",
+	}
+
+	deviceRepo := &persistence.RedisDevicesRepository{
+		Rdb: rdb,
+		Key: "devices",
 	}
 
 	logRepo := &persistence.MongoLogRepository{
@@ -142,12 +150,25 @@ func NewHandlerContainer(cfg *config.Config) *HandlerContainer {
 
 	/* End of Scheduler */
 
+	consumerUserDevices := consumerdevices.ConsumerUserDevices{
+		DeviceRepository: deviceRepo,
+	}
+
+	ConsumerUserDevices := kafkaconsumer.NewBatchConsumer(kafkaconsumer.BatchConfig{
+		Brokers:      []string{cfg.KafkaURL},
+		GroupID:      cfg.AppName,
+		Topic:        "user_update",
+		BatchSize:    1000,
+		BatchTimeout: 10 * time.Second,
+	}, consumerUserDevices.ConsumeBatch)
+
 	return &HandlerContainer{
-		CreateEvent: createEventHandl,
-		GetEvents:   getEventsHandler,
-		CreateLog:   createLogHandler,
-		Swagger:     swaggerHandler,
-		GetLogs:     getLogsHandler,
-		Scheduler:   schedulerWorker,
+		CreateEvent:         createEventHandl,
+		GetEvents:           getEventsHandler,
+		CreateLog:           createLogHandler,
+		Swagger:             swaggerHandler,
+		GetLogs:             getLogsHandler,
+		Scheduler:           schedulerWorker,
+		ConsumerUserDevices: ConsumerUserDevices,
 	}
 }

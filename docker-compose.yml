@@ -14,8 +14,8 @@ services:
       MONGO_DATABASE: ${MONGO_DATABASE:-events}
       KAFKA_URL: kafka:9092
       KAFKA_TOPICS: ${KAFKA_TOPICS:-artists,releases,songs,events,__consumer_offsets,play_song,user_update}
-      REDIS_HOST: ${REDIS_HOST:-redis}
-      REDIS_PORT: ${REDIS_PORT:-6379}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
       REDIS_PASSWORD: ${REDIS_PASSWORD:-supersecret}
     depends_on:
       kafka:

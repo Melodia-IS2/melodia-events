@@ -13,6 +13,7 @@ type Config struct {
 	KafkaURL    string
 	KafkaTopics []string
 	RedisConfig RedisConfig
+	AppName     string
 }
 
 type MongoConfig struct {
@@ -48,5 +49,6 @@ func Load() *Config {
 		},
 		KafkaURL:    env.GetEnv("KAFKA_URL", ""),
 		KafkaTopics: strings.Split(env.GetEnv("KAFKA_TOPICS", "__consumer_offsets"), ","),
+		AppName:     env.GetEnv("APP_NAME", "melodia-events"),
 	}
 }
