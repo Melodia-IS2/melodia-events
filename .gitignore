@@ -25,3 +25,5 @@ Thumbs.db
 *.swo
 
 .env
+
+docs/firebase.json

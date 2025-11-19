@@ -44,6 +44,8 @@ func main() {
 		RegisterHandler(deps.Swagger).
 		RegisterWorker(deps.Scheduler).
 		RegisterConsumer(deps.ConsumerUserDevices).
+		RegisterHandler(deps.Notify).
+		RegisterHandler(deps.SubNotifyTopic).
 		Build()
 
 	if err := app.Run(); err != nil {

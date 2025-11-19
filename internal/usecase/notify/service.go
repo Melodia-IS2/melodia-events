@@ -1,0 +1,59 @@
+package notify
+
+import (
+	"context"
+
+	firebase "firebase.google.com/go/v4"
+	"firebase.google.com/go/v4/messaging"
+
+	"github.com/Melodia-IS2/melodia-events/internal/domain/repositories"
+	"github.com/google/uuid"
+)
+
+type Notify interface {
+	NotifyUser(ctx context.Context, userID uuid.UUID, key string, data map[string]string) error
+	NotifyTopic(ctx context.Context, topic string, key string, data map[string]string) error
+}
+
+type NotifyImpl struct {
+	FirebaseApp       *firebase.App
+	DevicesRepository repositories.DevicesRepository
+}
+
+func (u *NotifyImpl) NotifyUser(ctx context.Context, userID uuid.UUID, key string, data map[string]string) (err error) {
+
+	client, err := u.FirebaseApp.Messaging(ctx)
+	if err != nil {
+		return err
+	}
+
+	devices, err := u.DevicesRepository.FetchByUserIDs(ctx, []uuid.UUID{userID})
+	if err != nil {
+		return err
+	}
+
+	userTokens := make([]string, 0, len(devices))
+	for _, device := range devices {
+		userTokens = append(userTokens, device.DeviceToken)
+	}
+
+	client.SendEachForMulticast(ctx, &messaging.MulticastMessage{
+		Tokens: userTokens,
+		Data:   data,
+	})
+	return nil
+}
+
+func (u *NotifyImpl) NotifyTopic(ctx context.Context, topic string, key string, data map[string]string) (err error) {
+
+	client, err := u.FirebaseApp.Messaging(ctx)
+	if err != nil {
+		return err
+	}
+
+	client.Send(ctx, &messaging.Message{
+		Topic: topic,
+		Data:  data,
+	})
+	return nil
+}

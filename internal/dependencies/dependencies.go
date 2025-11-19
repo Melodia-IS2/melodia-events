@@ -1,9 +1,12 @@
 package dependencies
 
 import (
+	"context"
 	"fmt"
+	"log"
 	"time"
 
+	firebase "firebase.google.com/go/v4"
 	"github.com/Melodia-IS2/melodia-events/internal/config"
 	kafkahelper "github.com/Melodia-IS2/melodia-events/internal/infrastructure/kafka"
 	"github.com/Melodia-IS2/melodia-events/internal/infrastructure/persistence"
@@ -15,6 +18,8 @@ import (
 	"github.com/Melodia-IS2/melodia-events/internal/usecase/createlog"
 	"github.com/Melodia-IS2/melodia-events/internal/usecase/getevents"
 	"github.com/Melodia-IS2/melodia-events/internal/usecase/getlogs"
+	"github.com/Melodia-IS2/melodia-events/internal/usecase/notify"
+	"github.com/Melodia-IS2/melodia-events/internal/usecase/subnotifytopic"
 	kafkaconsumer "github.com/Melodia-IS2/melodia-events/pkg/suscriber/kafka"
 	"github.com/Melodia-IS2/melodia-go-utils/pkg/app"
 	"github.com/Melodia-IS2/melodia-go-utils/pkg/router"
@@ -22,6 +27,7 @@ import (
 	"github.com/segmentio/kafka-go"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
+	"google.golang.org/api/option"
 
 	_ "github.com/lib/pq"
 )
@@ -33,6 +39,8 @@ type HandlerContainer struct {
 	CreateLog           router.CanRegister
 	Swagger             router.CanRegister
 	GetLogs             router.CanRegister
+	Notify              router.CanRegister
+	SubNotifyTopic      router.CanRegister
 	ConsumerUserDevices kafkaconsumer.Consumer
 	Scheduler           app.Worker
 }
@@ -78,6 +86,11 @@ func NewHandlerContainer(cfg *config.Config) *HandlerContainer {
 		DB:       0,
 	})
 
+	firebaseApp, err := firebase.NewApp(context.Background(), nil, option.WithCredentialsFile("docs/firebase.json"))
+	if err != nil {
+		log.Fatalf("error initializing app: %v", err)
+	}
+
 	/* Repositories */
 
 	eventRepo := &persistence.RedisEventRepository{
@@ -117,6 +130,16 @@ func NewHandlerContainer(cfg *config.Config) *HandlerContainer {
 	getLogsUC := &getlogs.GetLogsImpl{
 		LogRepository: logRepo,
 	}
+
+	notifyUC := &notify.NotifyImpl{
+		FirebaseApp:       firebaseApp,
+		DevicesRepository: deviceRepo,
+	}
+
+	subNotifyTopicUC := &subnotifytopic.SubNotifyTopicImpl{
+		FirebaseApp:       firebaseApp,
+		DevicesRepository: deviceRepo,
+	}
 	/* End of Usecases */
 
 	/* Handlers */
@@ -133,6 +156,13 @@ func NewHandlerContainer(cfg *config.Config) *HandlerContainer {
 		CreateLogUC: createLogUC,
 	}
 
+	notifyHandler := &notify.NotifyHandler{
+		NotifyUC: notifyUC,
+	}
+
+	subNotifyTopicHandler := &subnotifytopic.SubNotifyTopicHandler{
+		SubNotifyTopicUC: subNotifyTopicUC,
+	}
 	swaggerHandler := &swagger.SwaggerHandler{}
 
 	/* End of Handlers */
@@ -170,5 +200,7 @@ func NewHandlerContainer(cfg *config.Config) *HandlerContainer {
 		GetLogs:             getLogsHandler,
 		Scheduler:           schedulerWorker,
 		ConsumerUserDevices: ConsumerUserDevices,
+		Notify:              notifyHandler,
+		SubNotifyTopic:      subNotifyTopicHandler,
 	}
 }
