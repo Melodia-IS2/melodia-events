@@ -73,3 +73,23 @@ func SubscribeToTopic(ctx context.Context, topic string, userID uuid.UUID) error
 
 	return nil
 }
+
+func UnsubscribeFromTopic(ctx context.Context, topic string, userID uuid.UUID) error {
+	url := fmt.Sprintf("%s/unsubscribe/topic/%s/user/%s", notificationHandlerDomain, topic, userID)
+
+	req, err := http.NewRequestWithContext(ctx, "DELETE", url, nil)
+	if err != nil {
+		fmt.Println("Error creating request: ", err)
+		return err
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+
+	_, err = http.DefaultClient.Do(req)
+	if err != nil {
+		fmt.Println("Error unsubscribing from topic: ", err)
+		return err
+	}
+
+	return nil
+}
