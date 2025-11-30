@@ -15,6 +15,7 @@ type NotifyHandler struct {
 
 func (handler *NotifyHandler) Register(rt *router.Router) {
 	rt.Post("/notify/user/{user_id}", handler.notifyUser)
+	rt.Post("/notify/users", handler.notifyUsers)
 	rt.Post("/notify/topic/{topic}", handler.notifyTopic)
 }
 
@@ -44,4 +45,13 @@ func (handler *NotifyHandler) notifyTopic(w http.ResponseWriter, r *http.Request
 	}
 
 	return handler.NotifyUC.NotifyTopic(r.Context(), topic, req.Key, req.Data)
+}
+
+func (handler *NotifyHandler) notifyUsers(w http.ResponseWriter, r *http.Request) error {
+	req, err := httpUtils.ParseBody[NotifyUsersRequest](r)
+	if err != nil {
+		return errors.NewBadRequestError("invalid request")
+	}
+
+	return handler.NotifyUC.NotifyUsers(r.Context(), req.UserIDs, req.Key, req.Data)
 }

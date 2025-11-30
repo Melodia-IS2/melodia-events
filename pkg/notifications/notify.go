@@ -105,3 +105,36 @@ func UnsubscribeFromTopic(ctx context.Context, topic string, userID uuid.UUID) e
 
 	return nil
 }
+
+func NotifyUsers(ctx context.Context, userIDs []uuid.UUID, key string, data any) error {
+	url := fmt.Sprintf("%s/notify/users", notificationHandlerDomain)
+
+	body := struct {
+		Key     string      `json:"key"`
+		Data    any         `json:"data"`
+		UserIDs []uuid.UUID `json:"user_ids"`
+	}{
+		Key:     key,
+		Data:    data,
+		UserIDs: userIDs,
+	}
+
+	jsonBytes, err := json.Marshal(body)
+	if err != nil {
+		return fmt.Errorf("error marshaling payload: %w", err)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewBuffer(jsonBytes))
+	if err != nil {
+		return fmt.Errorf("error creating request: %w", err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+
+	_, err = http.DefaultClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("error publishing notification: %w", err)
+	}
+
+	return nil
+}

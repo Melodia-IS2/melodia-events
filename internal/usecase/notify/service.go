@@ -12,12 +12,14 @@ import (
 
 type Notify interface {
 	NotifyUser(ctx context.Context, userID uuid.UUID, key string, data map[string]string) error
+	NotifyUsers(ctx context.Context, userIDs []uuid.UUID, key string, data map[string]string) error
 	NotifyTopic(ctx context.Context, topic string, key string, data map[string]string) error
 }
 
 type NotifyImpl struct {
 	FirebaseApp       *firebase.App
 	DevicesRepository repositories.DevicesRepository
+	// NotificationsRepository repositories.NotificationsRepository
 }
 
 func (u *NotifyImpl) NotifyUser(ctx context.Context, userID uuid.UUID, key string, data map[string]string) (err error) {
@@ -54,6 +56,30 @@ func (u *NotifyImpl) NotifyTopic(ctx context.Context, topic string, key string, 
 	client.Send(ctx, &messaging.Message{
 		Topic: topic,
 		Data:  data,
+	})
+	return nil
+}
+
+func (u *NotifyImpl) NotifyUsers(ctx context.Context, userIDs []uuid.UUID, key string, data map[string]string) (err error) {
+
+	client, err := u.FirebaseApp.Messaging(ctx)
+	if err != nil {
+		return err
+	}
+
+	devices, err := u.DevicesRepository.FetchByUserIDs(ctx, userIDs)
+	if err != nil {
+		return err
+	}
+
+	userTokens := make([]string, 0, len(devices))
+	for _, device := range devices {
+		userTokens = append(userTokens, device.DeviceToken)
+	}
+
+	client.SendEachForMulticast(ctx, &messaging.MulticastMessage{
+		Tokens: userTokens,
+		Data:   data,
 	})
 	return nil
 }
