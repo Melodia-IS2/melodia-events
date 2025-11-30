@@ -27,6 +27,7 @@ func (handler *CreateEventHandler) createEvent(w http.ResponseWriter, r *http.Re
 	err = handler.CreateEventUC.Execute(r.Context(), &req)
 
 	if err != nil {
+		print(err.Error())
 		return err
 	}
 

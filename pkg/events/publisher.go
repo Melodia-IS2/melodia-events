@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 )
 
@@ -28,11 +29,19 @@ func Publish(ctx context.Context, event Event) error {
 
 	req.Header.Set("Content-Type", "application/json")
 
-	_, err = http.DefaultClient.Do(req)
+	res, err := http.DefaultClient.Do(req)
 	if err != nil {
 		fmt.Println("Error publishing event: ", err)
 		return err
 	}
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		fmt.Println("Error reading response body: ", err)
+		return err
+	}
+
+	println("Response: ", string(body))
 
 	return nil
 }
