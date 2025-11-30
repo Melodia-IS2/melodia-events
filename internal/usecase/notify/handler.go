@@ -1,7 +1,9 @@
 package notify
 
 import (
+	"bytes"
 	"fmt"
+	"io"
 	"net/http"
 
 	"github.com/Melodia-IS2/melodia-go-utils/pkg/errors"
@@ -50,6 +52,13 @@ func (handler *NotifyHandler) notifyTopic(w http.ResponseWriter, r *http.Request
 
 func (handler *NotifyHandler) notifyUsers(w http.ResponseWriter, r *http.Request) error {
 	fmt.Println("NotifyUsers")
+	bodyBytes, err := io.ReadAll(r.Body)
+	if err != nil {
+		fmt.Println("Error reading body:", err.Error())
+	} else {
+		fmt.Println("Raw body received:", string(bodyBytes))
+		r.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
+	}
 	req, err := httpUtils.ParseBody[NotifyUsersRequest](r)
 	if err != nil {
 		fmt.Println("Error parsing request", err.Error())
