@@ -3,6 +3,7 @@ package notifications
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -37,18 +38,29 @@ func NotifyUser(ctx context.Context, userID uuid.UUID, key string, data map[stri
 func NotifyTopic(ctx context.Context, topic string, key string, data any) error {
 	url := fmt.Sprintf("%s/notify/topic/%s", notificationHandlerDomain, topic)
 
-	req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewBuffer([]byte(fmt.Sprintf(`{"key": "%s", "data": %v}`, key, data))))
+	body := struct {
+		Key  string `json:"key"`
+		Data any    `json:"data"`
+	}{
+		Key:  key,
+		Data: data,
+	}
+
+	jsonBytes, err := json.Marshal(body)
 	if err != nil {
-		fmt.Println("Error creating request: ", err)
-		return err
+		return fmt.Errorf("error marshaling payload: %w", err)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewBuffer(jsonBytes))
+	if err != nil {
+		return fmt.Errorf("error creating request: %w", err)
 	}
 
 	req.Header.Set("Content-Type", "application/json")
 
 	_, err = http.DefaultClient.Do(req)
 	if err != nil {
-		fmt.Println("Error publishing event: ", err)
-		return err
+		return fmt.Errorf("error publishing event: %w", err)
 	}
 
 	return nil
