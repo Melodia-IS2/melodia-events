@@ -2,6 +2,7 @@ package notify
 
 import (
 	"context"
+	"fmt"
 
 	firebase "firebase.google.com/go/v4"
 	"firebase.google.com/go/v4/messaging"
@@ -62,11 +63,13 @@ func (u *NotifyImpl) NotifyTopic(ctx context.Context, topic string, key string, 
 
 func (u *NotifyImpl) NotifyUsers(ctx context.Context, userIDs []uuid.UUID, key string, data map[string]string) (err error) {
 
+	fmt.Println("NotifyUsers", userIDs, key, data)
 	client, err := u.FirebaseApp.Messaging(ctx)
 	if err != nil {
 		return err
 	}
 
+	fmt.Println("Fetching devices")
 	devices, err := u.DevicesRepository.FetchByUserIDs(ctx, userIDs)
 	if err != nil {
 		return err
@@ -77,9 +80,15 @@ func (u *NotifyImpl) NotifyUsers(ctx context.Context, userIDs []uuid.UUID, key s
 		userTokens = append(userTokens, device.DeviceToken)
 	}
 
-	client.SendEachForMulticast(ctx, &messaging.MulticastMessage{
+	fmt.Println("Sending notifications to", userTokens)
+	_, err = client.SendEachForMulticast(ctx, &messaging.MulticastMessage{
 		Tokens: userTokens,
 		Data:   data,
 	})
+
+	if err != nil {
+		fmt.Println("Error sending notifications", err.Error())
+	}
+
 	return nil
 }
