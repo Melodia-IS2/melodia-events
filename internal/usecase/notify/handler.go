@@ -1,6 +1,7 @@
 package notify
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/Melodia-IS2/melodia-go-utils/pkg/errors"
@@ -48,10 +49,14 @@ func (handler *NotifyHandler) notifyTopic(w http.ResponseWriter, r *http.Request
 }
 
 func (handler *NotifyHandler) notifyUsers(w http.ResponseWriter, r *http.Request) error {
+	fmt.Println("NotifyUsers")
 	req, err := httpUtils.ParseBody[NotifyUsersRequest](r)
 	if err != nil {
+		fmt.Println("Error parsing request", err.Error())
 		return errors.NewBadRequestError("invalid request")
 	}
+
+	fmt.Println("Request", req)
 
 	return handler.NotifyUC.NotifyUsers(r.Context(), req.UserIDs, req.Key, req.Data)
 }
