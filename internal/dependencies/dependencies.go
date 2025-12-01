@@ -18,6 +18,8 @@ import (
 	"github.com/Melodia-IS2/melodia-events/internal/usecase/createlog"
 	"github.com/Melodia-IS2/melodia-events/internal/usecase/getevents"
 	"github.com/Melodia-IS2/melodia-events/internal/usecase/getlogs"
+	"github.com/Melodia-IS2/melodia-events/internal/usecase/getnotifications"
+	"github.com/Melodia-IS2/melodia-events/internal/usecase/marknotificaitonasread"
 	"github.com/Melodia-IS2/melodia-events/internal/usecase/notify"
 	"github.com/Melodia-IS2/melodia-events/internal/usecase/subnotifytopic"
 	kafkaconsumer "github.com/Melodia-IS2/melodia-events/pkg/suscriber/kafka"
@@ -34,15 +36,17 @@ import (
 
 // TODO ADD DEFERS
 type HandlerContainer struct {
-	CreateEvent         router.CanRegister
-	GetEvents           router.CanRegister
-	CreateLog           router.CanRegister
-	Swagger             router.CanRegister
-	GetLogs             router.CanRegister
-	Notify              router.CanRegister
-	SubNotifyTopic      router.CanRegister
-	ConsumerUserDevices kafkaconsumer.Consumer
-	Scheduler           app.Worker
+	CreateEvent            router.CanRegister
+	GetEvents              router.CanRegister
+	CreateLog              router.CanRegister
+	Swagger                router.CanRegister
+	GetLogs                router.CanRegister
+	Notify                 router.CanRegister
+	SubNotifyTopic         router.CanRegister
+	GetNotifications       router.CanRegister
+	MarkNotificationAsRead router.CanRegister
+	ConsumerUserDevices    kafkaconsumer.Consumer
+	Scheduler              app.Worker
 }
 
 func NewHandlerContainer(cfg *config.Config) *HandlerContainer {
@@ -65,6 +69,7 @@ func NewHandlerContainer(cfg *config.Config) *HandlerContainer {
 
 	mongoDatabase := client.Database(cfg.MongoConfig.Database)
 	logsCollection := mongoDatabase.Collection("logs")
+	notificationsCollection := mongoDatabase.Collection("notifications")
 
 	if err := kafkahelper.WaitForKafka(cfg.KafkaURL, 30*time.Second); err != nil {
 		panic(fmt.Errorf("Kafka not available: %w", err))
@@ -107,6 +112,10 @@ func NewHandlerContainer(cfg *config.Config) *HandlerContainer {
 		Collection: logsCollection,
 	}
 
+	notificationsRepo := &persistence.MongoNotificationsRepository{
+		Collection: notificationsCollection,
+	}
+
 	eventPublisher := &publishers.KafkaEventPublisher{
 		Writer: kafkaWriter,
 	}
@@ -132,13 +141,22 @@ func NewHandlerContainer(cfg *config.Config) *HandlerContainer {
 	}
 
 	notifyUC := &notify.NotifyImpl{
-		FirebaseApp:       firebaseApp,
-		DevicesRepository: deviceRepo,
+		FirebaseApp:             firebaseApp,
+		DevicesRepository:       deviceRepo,
+		NotificationsRepository: notificationsRepo,
 	}
 
 	subNotifyTopicUC := &subnotifytopic.SubNotifyTopicImpl{
 		FirebaseApp:       firebaseApp,
 		DevicesRepository: deviceRepo,
+	}
+
+	getNotificationsUC := &getnotifications.GetNotificationsImpl{
+		NotificationsRepository: notificationsRepo,
+	}
+
+	markNotificationAsReadUC := &marknotificaitonasread.MarkNotificationAsReadImpl{
+		NotificationsRepository: notificationsRepo,
 	}
 	/* End of Usecases */
 
@@ -164,6 +182,14 @@ func NewHandlerContainer(cfg *config.Config) *HandlerContainer {
 		SubNotifyTopicUC: subNotifyTopicUC,
 	}
 	swaggerHandler := &swagger.SwaggerHandler{}
+
+	getNotificationsHandler := &getnotifications.GetNotificationsHandler{
+		GetNotificationsUC: getNotificationsUC,
+	}
+
+	markNotificationAsReadHandler := &marknotificaitonasread.MarkNotificationAsReadHandler{
+		MarkNotificationAsReadUC: markNotificationAsReadUC,
+	}
 
 	/* End of Handlers */
 
@@ -193,14 +219,16 @@ func NewHandlerContainer(cfg *config.Config) *HandlerContainer {
 	}, consumerUserDevices.ConsumeBatch)
 
 	return &HandlerContainer{
-		CreateEvent:         createEventHandl,
-		GetEvents:           getEventsHandler,
-		CreateLog:           createLogHandler,
-		Swagger:             swaggerHandler,
-		GetLogs:             getLogsHandler,
-		Scheduler:           schedulerWorker,
-		ConsumerUserDevices: ConsumerUserDevices,
-		Notify:              notifyHandler,
-		SubNotifyTopic:      subNotifyTopicHandler,
+		CreateEvent:            createEventHandl,
+		GetEvents:              getEventsHandler,
+		CreateLog:              createLogHandler,
+		Swagger:                swaggerHandler,
+		GetLogs:                getLogsHandler,
+		Scheduler:              schedulerWorker,
+		ConsumerUserDevices:    ConsumerUserDevices,
+		Notify:                 notifyHandler,
+		SubNotifyTopic:         subNotifyTopicHandler,
+		GetNotifications:       getNotificationsHandler,
+		MarkNotificationAsRead: markNotificationAsReadHandler,
 	}
 }

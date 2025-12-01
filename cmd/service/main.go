@@ -46,6 +46,8 @@ func main() {
 		RegisterConsumer(deps.ConsumerUserDevices).
 		RegisterHandler(deps.Notify).
 		RegisterHandler(deps.SubNotifyTopic).
+		RegisterHandler(deps.GetNotifications).
+		RegisterHandler(deps.MarkNotificationAsRead).
 		Build()
 
 	if err := app.Run(); err != nil {
