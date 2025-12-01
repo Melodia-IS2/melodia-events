@@ -45,6 +45,7 @@ func (u *NotifyImpl) NotifyUser(ctx context.Context, userID uuid.UUID, key strin
 	err = u.NotificationsRepository.Register(ctx, &entities.Notification{
 		ID:        uuid.New(),
 		UserID:    userID,
+		Topic:     key,
 		Data:      data,
 		Read:      false,
 		CreatedAt: time.Now(),
@@ -97,6 +98,7 @@ func (u *NotifyImpl) NotifyUsers(ctx context.Context, userIDs []uuid.UUID, key s
 		err = u.NotificationsRepository.Register(ctx, &entities.Notification{
 			ID:        uuid.New(),
 			UserID:    userID,
+			Topic:     key,
 			Data:      data,
 			Read:      false,
 			CreatedAt: time.Now(),

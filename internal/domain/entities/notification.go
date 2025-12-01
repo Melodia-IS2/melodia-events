@@ -8,6 +8,7 @@ import (
 
 type Notification struct {
 	ID        uuid.UUID         `json:"id" bson:"_id"`
+	Topic     string            `json:"topic" bson:"topic"`
 	UserID    uuid.UUID         `json:"user_id" bson:"user_id"`
 	Read      bool              `json:"read" bson:"read"`
 	Data      map[string]string `json:"data" bson:"data"`
