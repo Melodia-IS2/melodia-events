@@ -43,6 +43,8 @@ func (c *ConsumerUserDevices) ConsumeBatch(ctx context.Context, topic string, ms
 				DeviceToken: message.DeviceToken,
 			}
 
+			fmt.Println("inserting device", message.UserID, message.DeviceToken)
+
 		case KeyLogout:
 			delete(insertMap, key)
 
@@ -50,6 +52,8 @@ func (c *ConsumerUserDevices) ConsumeBatch(ctx context.Context, topic string, ms
 				UserID:      message.UserID,
 				DeviceToken: message.DeviceToken,
 			}
+
+			fmt.Println("deleting device", message.UserID, message.DeviceToken)
 		}
 	}
 
@@ -62,6 +66,9 @@ func (c *ConsumerUserDevices) ConsumeBatch(ctx context.Context, topic string, ms
 	for _, d := range deleteMap {
 		deletedDevices = append(deletedDevices, d)
 	}
+
+	fmt.Println("inserting devices", len(insertedDevices))
+	fmt.Println("deleting devices", len(deletedDevices))
 
 	for _, d := range insertedDevices {
 		err := c.DeviceRepository.Register(ctx, d)
