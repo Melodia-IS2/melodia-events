@@ -54,7 +54,7 @@ func (r *MongoNotificationsRepository) Get(
 	return notifications, nil
 }
 
-func (r *MongoNotificationsRepository) MarkAsRead(ctx context.Context, notificationID uuid.UUID) error {
-	_, err := r.Collection.UpdateOne(ctx, bson.M{"_id": notificationID}, bson.M{"$set": bson.M{"read": true}})
+func (r *MongoNotificationsRepository) MarkAsRead(ctx context.Context, notificationID uuid.UUID, userID uuid.UUID) error {
+	_, err := r.Collection.UpdateOne(ctx, bson.M{"_id": notificationID, "user_id": userID}, bson.M{"$set": bson.M{"read": true}})
 	return err
 }

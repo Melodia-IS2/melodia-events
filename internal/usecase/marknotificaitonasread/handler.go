@@ -3,6 +3,8 @@ package marknotificaitonasread
 import (
 	"net/http"
 
+	"github.com/Melodia-IS2/melodia-go-utils/pkg/auth"
+	"github.com/Melodia-IS2/melodia-go-utils/pkg/ctx"
 	"github.com/Melodia-IS2/melodia-go-utils/pkg/errors"
 	"github.com/Melodia-IS2/melodia-go-utils/pkg/router"
 	"github.com/google/uuid"
@@ -10,10 +12,16 @@ import (
 
 type MarkNotificationAsReadHandler struct {
 	MarkNotificationAsReadUC MarkNotificationAsRead
+	AuthMiddleware           auth.AuthMiddleware
 }
 
 func (handler *MarkNotificationAsReadHandler) Register(rt *router.Router) {
-	rt.Put("/notifications/{notification_id}/read", handler.markNotificationAsRead)
+	rt.Put("/notifications/{notification_id}/read", handler.
+		AuthMiddleware.
+		NewBuilder().
+		WithRol(ctx.ContextRolUser, ctx.ContextRolArtist).
+		WithState(ctx.ContextStateActive).
+		Build(handler.markNotificationAsRead))
 }
 
 // MarkNotificationAsRead godoc
@@ -32,7 +40,12 @@ func (handler *MarkNotificationAsReadHandler) markNotificationAsRead(w http.Resp
 		return errors.NewBadRequestError("invalid notification_id")
 	}
 
-	err = handler.MarkNotificationAsReadUC.Execute(r.Context(), notificationID)
+	userID, err := ctx.GetUserID(r.Context())
+	if err != nil {
+		return errors.NewUnauthorizedError("unauthorized")
+	}
+
+	err = handler.MarkNotificationAsReadUC.Execute(r.Context(), notificationID, userID)
 	if err != nil {
 		return err
 	}
