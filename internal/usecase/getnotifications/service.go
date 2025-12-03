@@ -9,13 +9,13 @@ import (
 )
 
 type GetNotifications interface {
-	Execute(ctx context.Context, n uint, userID uuid.UUID) ([]*entities.Notification, error)
+	Execute(ctx context.Context, n int, userID uuid.UUID) ([]*entities.Notification, error)
 }
 
 type GetNotificationsImpl struct {
 	NotificationsRepository repositories.NotificationsRepository
 }
 
-func (u *GetNotificationsImpl) Execute(ctx context.Context, n uint, userID uuid.UUID) ([]*entities.Notification, error) {
+func (u *GetNotificationsImpl) Execute(ctx context.Context, n int, userID uuid.UUID) ([]*entities.Notification, error) {
 	return u.NotificationsRepository.Get(ctx, n, userID)
 }

@@ -22,7 +22,7 @@ func (r *MongoNotificationsRepository) Register(ctx context.Context, notificatio
 
 func (r *MongoNotificationsRepository) Get(
 	ctx context.Context,
-	n uint,
+	n int,
 	userID uuid.UUID,
 ) ([]*entities.Notification, error) {
 

@@ -34,12 +34,12 @@ func (handler *GetNotificationsHandler) Register(rt *router.Router) {
 // @Failure 500 {object} errors.Error "Internal server error"
 // @Router /notifications [get]
 func (handler *GetNotificationsHandler) getNotifications(w http.ResponseWriter, r *http.Request) error {
-	n, err := router.GetQueryParam[uint](r, "n")
+	n, err := router.GetQueryParam[int](r, "n")
 	if err != nil {
 		return errors.NewBadRequestError("invalid n")
 	}
 
-	defaultN := uint(10)
+	defaultN := 10
 	if n == nil {
 		n = &defaultN
 	}
