@@ -195,6 +195,7 @@ func NewHandlerContainer(cfg *config.Config) *HandlerContainer {
 
 	markNotificationAsReadHandler := &marknotificaitonasread.MarkNotificationAsReadHandler{
 		MarkNotificationAsReadUC: markNotificationAsReadUC,
+		AuthMiddleware:           authMiddleware,
 	}
 
 	/* End of Handlers */
