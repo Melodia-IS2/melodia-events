@@ -8,12 +8,13 @@ import (
 )
 
 type Config struct {
-	Port        string
-	MongoConfig MongoConfig
-	KafkaURL    string
-	KafkaTopics []string
-	RedisConfig RedisConfig
-	AppName     string
+	Port         string
+	MongoConfig  MongoConfig
+	KafkaURL     string
+	KafkaTopics  []string
+	RedisConfig  RedisConfig
+	AppName      string
+	JWTSecretKey string
 }
 
 type MongoConfig struct {
@@ -47,8 +48,9 @@ func Load() *Config {
 			Port:     env.GetEnv("REDIS_PORT", ""),
 			Password: env.GetEnv("REDIS_PASSWORD", ""),
 		},
-		KafkaURL:    env.GetEnv("KAFKA_URL", ""),
-		KafkaTopics: strings.Split(env.GetEnv("KAFKA_TOPICS", "__consumer_offsets"), ","),
-		AppName:     env.GetEnv("APP_NAME", "melodia-events"),
+		KafkaURL:     env.GetEnv("KAFKA_URL", ""),
+		KafkaTopics:  strings.Split(env.GetEnv("KAFKA_TOPICS", "__consumer_offsets"), ","),
+		AppName:      env.GetEnv("APP_NAME", "melodia-events"),
+		JWTSecretKey: env.GetEnv("JWT_SECRET_KEY", ""),
 	}
 }

@@ -24,6 +24,7 @@ import (
 	"github.com/Melodia-IS2/melodia-events/internal/usecase/subnotifytopic"
 	kafkaconsumer "github.com/Melodia-IS2/melodia-events/pkg/suscriber/kafka"
 	"github.com/Melodia-IS2/melodia-go-utils/pkg/app"
+	"github.com/Melodia-IS2/melodia-go-utils/pkg/auth"
 	"github.com/Melodia-IS2/melodia-go-utils/pkg/router"
 	"github.com/redis/go-redis/v9"
 	"github.com/segmentio/kafka-go"
@@ -50,6 +51,10 @@ type HandlerContainer struct {
 }
 
 func NewHandlerContainer(cfg *config.Config) *HandlerContainer {
+	authMiddleware := auth.AuthMiddleware{
+		JWTSecretKey: cfg.JWTSecretKey,
+	}
+
 	var client *mongo.Client
 	var kafkaWriter *kafka.Writer
 
@@ -185,6 +190,7 @@ func NewHandlerContainer(cfg *config.Config) *HandlerContainer {
 
 	getNotificationsHandler := &getnotifications.GetNotificationsHandler{
 		GetNotificationsUC: getNotificationsUC,
+		AuthMiddleware:     authMiddleware,
 	}
 
 	markNotificationAsReadHandler := &marknotificaitonasread.MarkNotificationAsReadHandler{

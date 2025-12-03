@@ -3,6 +3,7 @@ package getnotifications
 import (
 	"net/http"
 
+	"github.com/Melodia-IS2/melodia-go-utils/pkg/auth"
 	"github.com/Melodia-IS2/melodia-go-utils/pkg/ctx"
 	"github.com/Melodia-IS2/melodia-go-utils/pkg/errors"
 	"github.com/Melodia-IS2/melodia-go-utils/pkg/router"
@@ -10,10 +11,16 @@ import (
 
 type GetNotificationsHandler struct {
 	GetNotificationsUC GetNotifications
+	AuthMiddleware     auth.AuthMiddleware
 }
 
 func (handler *GetNotificationsHandler) Register(rt *router.Router) {
-	rt.Get("/notifications", handler.getNotifications)
+	rt.Get("/notifications", handler.
+		AuthMiddleware.
+		NewBuilder().
+		WithRol(ctx.ContextRolUser, ctx.ContextRolArtist).
+		WithState(ctx.ContextStateActive).
+		Build(handler.getNotifications))
 }
 
 // GetNotifications godoc
