@@ -33,6 +33,10 @@ func (c *ConsumerUserDevices) ConsumeBatch(ctx context.Context, topic string, ms
 
 		key := message.DeviceToken
 
+		if key == "" {
+			continue
+		}
+
 		switch msg.Key {
 
 		case KeyLogin, KeyCreate:
